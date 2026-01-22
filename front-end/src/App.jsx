@@ -7,19 +7,24 @@ import HomePage from "./pages/HomePage";
 import AboutPage from "./pages/AboutPage";
 import ArticlesListPage from "./pages/ArticlesList";
 import ArticlePage from "./pages/ArticlePage";
+import Layout from "./Layout";
 
 const routes = [{
   path: '/',
-  element: <HomePage />
-}, {
-  path: '/about',
-  element: <AboutPage />
-}, {
-  path: '/articles',
-  element: <ArticlesListPage />
-}, {
-  path: '/articles/individual',
-  element: <ArticlePage />
+  element: <Layout />,
+  children: [{
+    path: '/',
+    element: <HomePage />
+  }, {
+    path: '/about',
+    element: <AboutPage />
+  }, {
+    path: '/articles',
+    element: <ArticlesListPage />
+  }, {
+    path: '/articles/individual',
+    element: <ArticlePage />
+  }]
 }];
 
 const router = createBrowserRouter(routes);

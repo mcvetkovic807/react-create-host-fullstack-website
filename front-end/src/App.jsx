@@ -5,13 +5,15 @@ import {
 import './App.css'
 import HomePage from "./pages/HomePage";
 import AboutPage from "./pages/AboutPage";
-import ArticlesListPage from "./pages/ArticlesListPage.jsx";
+import ArticlesListPage from "./pages/ArticlesListPage";
 import ArticlePage from "./pages/ArticlePage";
 import Layout from "./Layout";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const routes = [{
   path: '/',
   element: <Layout />,
+  errorElement: <NotFoundPage />,
   children: [{
     path: '/',
     element: <HomePage />

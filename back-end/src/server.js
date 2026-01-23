@@ -1,11 +1,16 @@
 import express from "express";
 import { MongoClient, ServerApiVersion } from "mongodb";
+import dotenv from "dotenv";
 
 const articleInfo = [
     { name: 'learn-node', upvotes: 0, comments: [] },
     { name: 'learn-react', upvotes: 0, comments: [] },
     { name: 'mongodb', upvotes: 0, comments: [] },
 ];
+
+dotenv.config({
+    path: './src/.env'
+});
 
 const app = express();
 
@@ -14,7 +19,9 @@ app.use(express.json());
 app.get('/api/articles/:name', async (req, res) => {
     const { name } = req.params;
 
-    const uri = 'mongodb://127.0.0.1:27017';
+    console.log(process.env.MONGO_DB);
+
+    const uri = 'mongodb://root:example@127.0.0.1:27017/?authSource=admin';
 
     const client = new MongoClient(uri, {
         serverApi: {

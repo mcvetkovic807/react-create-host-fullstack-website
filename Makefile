@@ -6,7 +6,7 @@ default: help
 # -----------------------------
 # Variables
 # -----------------------------
-COMPOSE=docker-compose -f docker/composefiles/docker-compose.yml
+COMPOSE=docker compose -f docker/composefiles/docker-compose.yml
 MONGO_SERVICE = mongodb
 MONGO_SHELL = mongosh
 ENV_FILE = back-end/src/.env
@@ -84,21 +84,24 @@ mongo-drop-db: ## Drop a database (⚠ destructive)
 		--authenticationDatabase $(MONGO_AUTHDB) \
 		$(MONGO_DB) --eval "db.dropDatabase()"
 
-## Run a JS file inside Mongo shell
-mongo-run:
+.PHONY: mongo-run
+mongo-run: ## Run a JS file inside Mongo shell
 	docker exec -i $(MONGO_SERVICE) \
 		$(MONGO_SHELL) -u $(MONGO_USER) -p $(MONGO_PASS) \
 		--authenticationDatabase $(MONGO_AUTHDB) < back-end/src/mongo.js
 
-mongo-reset:
-	docker compose down -v
-	docker compose up -d
+.PHONY: mongo-reset
+mongo-reset: ## Delete volume and network
+	$(COMPOSE) down -v
+	$(COMPOSE) up -d
 
-mongo-ping:
+.PHONY: mongo-ping
+mongo-ping: ## Check if mongo service is available
 	docker exec $(MONGO_SERVICE) \
 		$(MONGO_SHELL) --quiet \
 		"mongodb://$(MONGO_USER):$(MONGO_PASS)@$(MONGO_HOST):$(MONGO_PORT)/?authSource=$(MONGO_AUTHDB)" \
 		--eval "db.runCommand({ ping: 1 })"
 
-docker-logs-mongo:
+.PHONY: docker-logs-mongo
+docker-logs-mongo: ## Show logs for mongo service
 	docker logs -f $(MONGO_SERVICE)

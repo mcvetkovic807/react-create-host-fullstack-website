@@ -1,36 +1,35 @@
 import express from "express";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import dotenv from "dotenv";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// const articleInfo = [
-//     { name: 'learn-node', upvotes: 0, comments: [] },
-//     { name: 'learn-react', upvotes: 0, comments: [] },
-//     { name: 'mongodb', upvotes: 0, comments: [] },
-// ];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-dotenv.config({
-    path: './src/.env'
-});
-
-const mongoDb = {
-    user: process.env.MONGO_USER,
-    pass: process.env.MONGO_PASS,
-    host: process.env.MONGO_HOST,
-    port: process.env.MONGO_PORT,
-    authSource: process.env.MONGO_AUTHDB,
-    db: 'full-stack-react-db'
-};
+let db;
 
 const app = express();
 
 app.use(express.json());
 
-app.get('/api/articles/:name', async (req, res) => {
-    const { name } = req.params;
+function getMongoConfig() {
+    dotenv.config({
+        path: path.join(__dirname, '.env'),
+    });
+    return {
+        user: process.env.MONGO_USER,
+        pass: process.env.MONGO_PASS,
+        host: process.env.MONGO_HOST,
+        port: process.env.MONGO_PORT,
+        authSource: process.env.MONGO_AUTHDB,
+        db: 'full-stack-react-db'
+    };
+}
 
+async function connectToDb() {
+    const mongoDb = getMongoConfig();
     const uri = `mongodb://${mongoDb.user}:${mongoDb.pass}@${mongoDb.host}:${mongoDb.port}/?authSource=${mongoDb.authSource}`;
-
-    console.log(uri);
 
     const client = new MongoClient(uri, {
         serverApi: {
@@ -41,17 +40,24 @@ app.get('/api/articles/:name', async (req, res) => {
     });
 
     await client.connect();
-    const db = client.db(mongoDb.db);
-    const article = await db.collection('articles').findOne({name: name});
+    db = client.db(mongoDb.db);
+}
 
+app.get('/api/articles/:name', async (req, res) => {
+    const { name } = req.params;
+    const article = await db.collection('articles').findOne({name: name});
     res.json(article);
 });
 
-app.post('/api/articles/:name/upvote', (req, res) => {
-    const article = articleInfo.find(a => a.name === req.params.name);
-    article.upvotes += 1;
+app.post('/api/articles/:name/upvote', async(req, res) => {
+    const { name } = req.params;
+    const updatedArticle = await db.collection('articles').findOneAndUpdate({ name }, {
+        $inc: { upvotes: 1 },
+    }, {
+        returnDocument: "after"
+    });
 
-    res.json(article);
+    res.json(updatedArticle);
 });
 
 app.post('/api/articles/:name/comments', (req, res) => {
@@ -66,6 +72,11 @@ app.post('/api/articles/:name/comments', (req, res) => {
     res.json(article);
 });
 
-app.listen(8000, function() {
-    console.log('Server started on port 8000');
-});
+async function start() {
+    await connectToDb();
+    app.listen(8000, function() {
+        console.log('Server started on port 8000');
+    });
+}
+
+start();

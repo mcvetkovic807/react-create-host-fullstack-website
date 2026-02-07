@@ -3,6 +3,16 @@ import { MongoClient, ServerApiVersion } from "mongodb";
 import dotenv from "dotenv";
 import path from 'path';
 import { fileURLToPath } from 'url';
+import admin from 'firebase-admin';
+import fs from 'fs';
+
+const credentials = JSON.parse(
+    fs.readFileSync(path.resolve('back-end/src/credentials.json'))
+);
+
+admin.initializeApp({
+    credential: admin.credential.cert(credentials)
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

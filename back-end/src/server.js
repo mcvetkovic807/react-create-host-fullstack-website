@@ -59,6 +59,18 @@ app.get('/api/articles/:name', async (req, res) => {
     res.json(article);
 });
 
+
+app.use(async function (req, res, next){
+    const { authToken } = req.headers;
+    if (authToken) {
+        const user = await admin.auth().verifyIdToken(authToken);
+        req.user = user;
+    } else {
+        return res.status(400);
+    }
+    next();
+});
+
 app.post('/api/articles/:name/upvote', async(req, res) => {
     const { name } = req.params;
     const updatedArticle = await db.collection('articles').findOneAndUpdate({ name }, {
